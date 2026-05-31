@@ -1,0 +1,59 @@
+name: plantilla-inicio-server
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: plantilla_inicio_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-plantilla}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-plantilla}
+      POSTGRES_DB: ${POSTGRES_DB:-plantilla_inicio}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-plantilla} -d ${POSTGRES_DB:-plantilla_inicio}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: plantilla-inicio-api:server
+    container_name: plantilla_inicio_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-plantilla}:${POSTGRES_PASSWORD:-plantilla}@db:5432/${POSTGRES_DB:-plantilla_inicio}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      PRISMA_RUN_SEED: ${PRISMA_RUN_SEED:-false}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-johanstian20@hotmail.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-rmmr}
+      ADMIN_NOMBRES: ${ADMIN_NOMBRES:-Johan Sebastian}
+      ADMIN_APELLIDOS: ${ADMIN_APELLIDOS:-Admin}
+      ADMIN_CELULAR: ${ADMIN_CELULAR:-3000000000}
+    ports:
+      - "127.0.0.1:${API_PORT:-3000}:3000"
+
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    image: plantilla-inicio-web:server
+    container_name: plantilla_inicio_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-80}:80"
+
+volumes:
+  postgres_data:

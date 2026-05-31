@@ -1,0 +1,975 @@
+DOCUMENTO DE LÓGICA FUNCIONAL
+APLICACIÓN INTERMEDIARIA PARA CONTROL DE INVENTARIO Y EMPALME CON DSNUBE
+
+Fecha: 30 de mayo de 2026
+Versión: 2.0
+
+
+1. OBJETIVO GENERAL
+
+El objetivo de la aplicación es servir como una herramienta intermediaria para el registro, control y revisión básica de información de inventario antes de que esta sea cargada o empalmada con DsNube.
+
+La aplicación no reemplaza a DsNube.
+
+La aplicación funciona como un apoyo para que los usuarios puedan registrar productos, existencias iniciales, entradas, abastecimientos, salidas y stock actual de una manera más organizada.
+
+Una vez registrada la información, un rol encargado del empalme podrá revisar el historial de transacciones, validar la información y dar visto bueno para que esta quede lista para ser cargada o relacionada posteriormente con DsNube.
+
+
+2. ALCANCE DE LA PROPUESTA
+
+La propuesta corresponde a un desarrollo sencillo, similar a la lógica de una macro de inventario en Excel, pero llevado a una aplicación con usuarios, roles, permisos e historial de movimientos.
+
+El sistema permitirá:
+
+- Registrar productos.
+- Registrar existencias iniciales.
+- Registrar entradas de inventario.
+- Registrar abastecimientos.
+- Registrar salidas de inventario.
+- Calcular stock actual.
+- Consultar historial de movimientos.
+- Generar reportes sencillos.
+- Permitir que un rol de empalme revise las transacciones.
+- Dar visto bueno a la información que se encuentre correcta.
+- Dejar la información lista para ser cargada o empalmada con DsNube.
+
+La aplicación no realiza, en su primera fase, una integración automática compleja con DsNube.
+
+La finalidad principal es organizar la información antes de llevarla al sistema oficial.
+
+
+3. QUÉ ES ESTA APLICACIÓN
+
+Esta aplicación es una herramienta de control previo de inventario.
+
+Permite que los usuarios registren la información de los movimientos de inventario en un sistema organizado, en lugar de manejarla manualmente o de forma dispersa.
+
+La aplicación ayuda a responder preguntas como:
+
+- ¿Qué productos existen?
+- ¿Cuánto stock inicial se registró?
+- ¿Qué entradas se han realizado?
+- ¿Qué salidas se han registrado?
+- ¿Qué abastecimientos se han hecho?
+- ¿Cuál es el stock actual?
+- ¿Quién registró cada movimiento?
+- ¿Cuándo se registró?
+- ¿Qué movimientos están listos para DsNube?
+- ¿Qué movimientos ya fueron revisados por el rol de empalme?
+
+
+4. QUÉ NO ES ESTA APLICACIÓN
+
+Esta aplicación no es un reemplazo de DsNube.
+
+No es un ERP.
+
+No es el sistema oficial contable o financiero de la empresa.
+
+No modifica directamente la información de DsNube en su primera fase.
+
+No busca competir con las funcionalidades propias de DsNube.
+
+Su propósito es funcionar como una aplicación previa, sencilla y controlada para organizar la información antes del cargue o empalme.
+
+
+5. IDEA PRINCIPAL DEL PROCESO
+
+La lógica general es:
+
+1. El usuario registra productos y movimientos de inventario.
+2. La aplicación calcula el stock interno.
+3. Cada movimiento queda guardado en el historial.
+4. El rol de empalme consulta el historial de transacciones.
+5. El rol de empalme revisa entradas, salidas, abastecimientos y existencias iniciales.
+6. El rol de empalme da visto bueno a la información correcta.
+7. La información aprobada queda lista para ser cargada o empalmada con DsNube.
+8. El administrador del sistema puede gestionar usuarios, roles y permisos.
+
+En palabras sencillas:
+
+El usuario registra.
+La aplicación calcula.
+El rol de empalme revisa.
+El rol de empalme da visto bueno.
+La información queda lista para DsNube.
+
+
+6. ROLES PRINCIPALES
+
+6.1. Rol Administrador del Sistema
+
+Este rol se encarga de la administración general de la aplicación.
+
+Sus funciones principales son:
+
+- Crear usuarios.
+- Editar usuarios.
+- Activar o inactivar usuarios.
+- Asignar roles.
+- Asignar permisos.
+- Consultar información general del sistema.
+- Supervisar el uso de la aplicación.
+
+Este rol administra el acceso al sistema, pero no necesariamente registra los movimientos de inventario del día a día.
+
+
+6.2. Rol Gestor de Inventario
+
+Este es el usuario operativo que registra la información.
+
+Sus funciones principales son:
+
+- Registrar productos.
+- Registrar existencias iniciales.
+- Registrar entradas.
+- Registrar abastecimientos.
+- Registrar salidas.
+- Consultar stock actual.
+- Consultar sus movimientos registrados.
+- Generar reportes básicos de inventario.
+
+Este rol se encarga de alimentar la información en la aplicación.
+
+No debe tener la responsabilidad de dar visto bueno para DsNube.
+
+
+6.3. Rol de Empalme con DsNube
+
+Este rol es el valor agregado de la propuesta.
+
+Su función principal es revisar la información registrada por los usuarios antes de que sea llevada a DsNube.
+
+Este rol puede:
+
+- Consultar el historial de transacciones.
+- Ver movimientos registrados por los usuarios.
+- Revisar entradas.
+- Revisar salidas.
+- Revisar abastecimientos.
+- Revisar existencias iniciales.
+- Validar si la información está completa.
+- Dar visto bueno para que la información quede lista para DsNube.
+- Marcar movimientos como revisados.
+- Marcar movimientos como listos para empalme.
+- Generar reporte de información lista para cargar en DsNube.
+
+Este rol no necesariamente realiza una integración automática con DsNube.
+
+Su objetivo es controlar y validar la información antes del cargue o empalme.
+
+
+7. FLUJO GENERAL DE LA APLICACIÓN
+
+El flujo recomendado es el siguiente:
+
+1. Registro de producto
+   El gestor de inventario registra o selecciona un producto.
+
+2. Registro de movimiento
+   El gestor registra una existencia inicial, entrada, abastecimiento o salida.
+
+3. Cálculo de stock
+   La aplicación actualiza el stock interno según el tipo de movimiento.
+
+4. Registro en historial
+   Cada movimiento queda guardado con fecha, usuario, producto, cantidad y tipo de operación.
+
+5. Revisión del rol de empalme
+   El rol de empalme consulta el historial y revisa las transacciones realizadas.
+
+6. Visto bueno
+   Si la información está correcta, el rol de empalme la marca como lista para DsNube.
+
+7. Observación o rechazo
+   Si la información tiene errores, el rol de empalme puede dejar una observación para corrección.
+
+8. Información lista para DsNube
+   Los movimientos revisados quedan disponibles para su cargue, reporte o empalme con DsNube.
+
+
+8. LÓGICA DE INVENTARIO
+
+La lógica del inventario es sencilla:
+
+Existencias iniciales + Entradas + Abastecimientos - Salidas = Stock actual
+
+Ejemplo:
+
+Existencia inicial: 100 unidades
+Entrada: 50 unidades
+Abastecimiento: 20 unidades
+Salida: 30 unidades
+
+Stock actual: 140 unidades
+
+La aplicación debe calcular automáticamente el stock a partir de los movimientos registrados.
+
+
+9. REGLA PRINCIPAL DEL STOCK
+
+El stock no debe modificarse manualmente de forma directa.
+
+El stock debe cambiar únicamente a través de movimientos.
+
+Esto permite saber por qué aumentó o disminuyó el inventario.
+
+Ejemplo:
+
+Si el stock actual de un producto es 100 y se registra una salida de 20, el nuevo stock será 80.
+
+Si luego se registra una entrada de 50, el nuevo stock será 130.
+
+Cada cambio queda registrado en el historial.
+
+
+10. PRODUCTOS
+
+La aplicación debe permitir registrar productos básicos.
+
+Información sugerida del producto:
+
+- Código interno.
+- Nombre del producto.
+- Descripción.
+- Categoría.
+- Unidad de medida.
+- Stock mínimo.
+- Estado.
+
+Ejemplo:
+
+Código: P001
+Producto: Papel tamaño carta
+Categoría: Papelería
+Unidad: Resma
+Stock mínimo: 10
+Estado: Activo
+
+
+11. EXISTENCIAS INICIALES
+
+La existencia inicial corresponde a la cantidad con la que inicia un producto en el inventario.
+
+Ejemplo:
+
+Producto: Papel tamaño carta
+Existencia inicial: 100 resmas
+
+Este movimiento suma al stock.
+
+La existencia inicial debe quedar registrada en el historial para saber con qué cantidad empezó el control del producto.
+
+
+12. ENTRADAS
+
+Las entradas corresponden al ingreso de productos al inventario.
+
+Pueden generarse por compra, reposición o recepción de elementos.
+
+Ejemplo:
+
+Producto: Guantes de nitrilo
+Entrada: 20 cajas
+Motivo: Compra
+
+Este movimiento suma al stock.
+
+
+13. ABASTECIMIENTOS
+
+Los abastecimientos corresponden a ingresos o reposiciones internas de inventario.
+
+Ejemplo:
+
+Producto: Marcadores
+Abastecimiento: 30 unidades
+Motivo: Reposición interna
+
+Este movimiento suma al stock.
+
+La diferencia con una compra es que el abastecimiento puede manejarse como una entrada interna o reposición, según la operación de la empresa.
+
+
+14. SALIDAS
+
+Las salidas corresponden al retiro de productos del inventario.
+
+Ejemplo:
+
+Producto: Papel tamaño carta
+Salida: 15 resmas
+Destino: Área administrativa
+
+Este movimiento descuenta del stock.
+
+Regla importante:
+
+La aplicación no debe permitir registrar una salida mayor al stock disponible.
+
+Ejemplo:
+
+Stock actual: 10 unidades
+Salida solicitada: 15 unidades
+
+Resultado:
+La aplicación debe mostrar una alerta e impedir la salida.
+
+
+15. HISTORIAL DE TRANSACCIONES
+
+El historial de transacciones es uno de los puntos más importantes de la aplicación.
+
+Debe guardar todos los movimientos realizados por los usuarios.
+
+El historial debe permitir consultar:
+
+- Fecha del movimiento.
+- Usuario que registró.
+- Producto.
+- Tipo de movimiento.
+- Cantidad.
+- Stock anterior.
+- Stock nuevo.
+- Observación.
+- Estado del movimiento.
+- Si fue revisado por el rol de empalme.
+- Fecha de revisión.
+- Usuario que dio visto bueno.
+
+Este historial será consultado por el rol de empalme para validar la información antes de llevarla a DsNube.
+
+
+16. ESTADOS DE LOS MOVIMIENTOS
+
+Para mantener la lógica sencilla, se recomiendan los siguientes estados:
+
+16.1. Registrado
+
+El movimiento fue creado por el gestor de inventario.
+
+16.2. En revisión
+
+El movimiento está siendo revisado por el rol de empalme.
+
+16.3. Observado
+
+El movimiento tiene alguna novedad o requiere corrección.
+
+16.4. Listo para DsNube
+
+El movimiento fue revisado y cuenta con visto bueno.
+
+16.5. Cargado o empalmado
+
+El movimiento ya fue utilizado para el cargue o empalme con DsNube.
+
+Estos estados permiten controlar el avance sin volver complejo el proceso.
+
+
+17. LÓGICA DEL ROL DE EMPALME
+
+El rol de empalme debe tener una vista donde pueda consultar las transacciones realizadas por los usuarios.
+
+Esta vista puede mostrar:
+
+- Fecha.
+- Usuario.
+- Producto.
+- Tipo de movimiento.
+- Cantidad.
+- Stock resultante.
+- Estado.
+- Observación.
+- Acción.
+
+Las acciones principales serían:
+
+- Ver detalle.
+- Marcar como revisado.
+- Dejar observación.
+- Marcar como listo para DsNube.
+
+El rol de empalme no necesita modificar toda la información.
+
+Su función principal es revisar, validar y dar visto bueno.
+
+
+18. RELACIÓN CON DSNUBE
+
+La aplicación funciona como paso previo a DsNube.
+
+La información que llegue a DsNube debe ser información revisada.
+
+En una primera fase, el proceso puede ser manual:
+
+1. La aplicación registra los movimientos.
+2. El rol de empalme revisa el historial.
+3. El rol de empalme marca la información como lista para DsNube.
+4. Se genera un reporte o archivo con la información aprobada.
+5. El responsable realiza el cargue o empalme en DsNube.
+
+En fases futuras, si la empresa lo requiere, se puede evaluar una integración más avanzada.
+
+Pero la propuesta inicial no depende de una integración automática.
+
+
+19. REPORTES BÁSICOS
+
+La aplicación debe permitir reportes sencillos y útiles.
+
+Reportes recomendados:
+
+1. Stock actual por producto.
+2. Existencias iniciales registradas.
+3. Entradas por fecha.
+4. Abastecimientos por fecha.
+5. Salidas por fecha.
+6. Historial de movimientos.
+7. Movimientos registrados por usuario.
+8. Movimientos observados.
+9. Movimientos listos para DsNube.
+10. Productos con stock bajo.
+
+Estos reportes ayudan al usuario operativo, al rol de empalme y al administrador.
+
+
+20. VALIDACIONES BÁSICAS
+
+La aplicación debe tener validaciones simples para evitar errores.
+
+Validaciones recomendadas:
+
+- No permitir cantidades en cero.
+- No permitir cantidades negativas.
+- No permitir salidas mayores al stock disponible.
+- No permitir productos sin nombre.
+- No permitir movimientos sin producto.
+- No permitir movimientos sin tipo de operación.
+- No permitir marcar como listo para DsNube un movimiento observado.
+- Registrar siempre el usuario que realiza la acción.
+- Registrar siempre la fecha de la acción.
+
+
+21. BENEFICIOS DE LA PROPUESTA
+
+La aplicación permite:
+
+- Organizar la información antes de llevarla a DsNube.
+- Controlar entradas, salidas y abastecimientos.
+- Calcular stock actual.
+- Tener historial de transacciones.
+- Saber quién registró cada movimiento.
+- Evitar salidas mayores al stock disponible.
+- Facilitar la revisión por parte de un rol de empalme.
+- Tener información lista y revisada para DsNube.
+- Reducir errores de digitación o cargue.
+- Tener una solución sencilla, parecida a una macro de inventario, pero más controlada.
+
+
+22. PROPUESTA DE IMPLEMENTACIÓN POR FASES
+
+Fase 1: Control básico de inventario
+
+- Productos.
+- Existencias iniciales.
+- Entradas.
+- Abastecimientos.
+- Salidas.
+- Stock actual.
+- Historial de movimientos.
+
+Fase 2: Roles y revisión
+
+- Rol gestor de inventario.
+- Rol de empalme.
+- Administrador del sistema.
+- Estados de movimientos.
+- Observaciones.
+- Visto bueno para DsNube.
+
+Fase 3: Reportes
+
+- Stock actual.
+- Movimientos por fecha.
+- Movimientos por usuario.
+- Movimientos listos para DsNube.
+
+Fase 4: Apoyo al cargue en DsNube
+
+- Reporte de información validada.
+- Exportación de datos, si se requiere.
+- Marcación de movimientos cargados o empalmados.
+
+Fase futura opcional:
+
+- Evaluar integración por archivo plano o API, solo si la empresa lo requiere y DsNube lo permite.
+
+
+23. RESUMEN EJECUTIVO
+
+Se propone desarrollar una aplicación intermediaria para el control básico de inventario, basada en una lógica similar a una macro de inventario en Excel, pero con usuarios, roles, historial y revisión.
+
+La aplicación permitirá registrar productos, existencias iniciales, entradas, abastecimientos y salidas, calculando automáticamente el stock actual.
+
+El gestor de inventario será quien registre la información.
+
+El rol de empalme con DsNube será quien consulte el historial de transacciones, revise los movimientos y dé visto bueno para que la información quede lista para cargarse o empalmarse con DsNube.
+
+El administrador del sistema gestionará usuarios, roles y permisos.
+
+La aplicación no reemplaza a DsNube.
+
+La aplicación funciona como una herramienta previa de organización, control y validación de información, permitiendo reducir errores y mejorar la trazabilidad antes de llevar los datos al sistema oficial.
+
+
+24. FRASE CORTA DE LA PROPUESTA
+
+Aplicación intermediaria para control básico de inventario, con historial de transacciones y rol de empalme para validar la información antes de su cargue o relación con DsNube.
+
+
+PROPUESTA MODELO RELACIONAL
+
+1. Modelo general
+USUARIOS / ROLES / PERMISOS
+        |
+        v
+PRODUCTOS
+        |
+        v
+MOVIMIENTOS DE INVENTARIO
+        |
+        v
+STOCK ACTUAL
+        |
+        v
+HISTORIAL / REVISIÓN DE EMPALME
+        |
+        v
+INFORMACIÓN LISTA PARA DSNUBE
+2. Tablas principales del aplicativo
+1. usuarios
+
+Esta tabla probablemente ya la tienes en tu CRUD actual.
+
+Campo	Tipo sugerido	Descripción
+id_usuario	PK	Identificador del usuario
+nombre	varchar	Nombre del usuario
+correo	varchar	Correo
+password_hash	varchar	Contraseña cifrada
+activo	boolean	Estado del usuario
+fecha_creacion	datetime	Fecha de creación
+2. roles
+
+También puede existir ya en tu base.
+
+Campo	Tipo sugerido	Descripción
+id_rol	PK	Identificador del rol
+nombre	varchar	Nombre del rol
+descripcion	varchar	Descripción
+
+Roles sugeridos:
+
+ADMINISTRADOR
+GESTOR_INVENTARIO
+EMPALME_DSNUBE
+CONSULTA
+3. permisos
+Campo	Tipo sugerido	Descripción
+id_permiso	PK	Identificador del permiso
+codigo	varchar	Código del permiso
+descripcion	varchar	Descripción
+
+Permisos sugeridos:
+
+PRODUCTO_CREAR
+PRODUCTO_EDITAR
+PRODUCTO_CONSULTAR
+
+MOVIMIENTO_CREAR
+MOVIMIENTO_CONSULTAR
+MOVIMIENTO_ANULAR
+
+STOCK_CONSULTAR
+
+EMPALME_REVISAR
+EMPALME_OBSERVAR
+EMPALME_MARCAR_LISTO
+EMPALME_MARCAR_CARGADO
+
+REPORTE_CONSULTAR
+USUARIO_ADMINISTRAR
+4. usuario_rol
+
+Relaciona usuarios con roles.
+
+Campo	Tipo sugerido	Descripción
+id_usuario_rol	PK	Identificador
+id_usuario	FK	Usuario
+id_rol	FK	Rol
+
+Relación:
+
+usuarios 1 ---- N usuario_rol N ---- 1 roles
+5. rol_permiso
+
+Relaciona roles con permisos.
+
+Campo	Tipo sugerido	Descripción
+id_rol_permiso	PK	Identificador
+id_rol	FK	Rol
+id_permiso	FK	Permiso
+
+Relación:
+
+roles 1 ---- N rol_permiso N ---- 1 permisos
+3. Tablas de inventario
+6. categorias_producto
+
+Sirve para clasificar productos.
+
+Campo	Tipo sugerido	Descripción
+id_categoria	PK	Identificador
+nombre	varchar	Nombre de la categoría
+descripcion	varchar	Descripción
+activo	boolean	Estado
+
+Ejemplos:
+
+Papelería
+Elementos de aseo
+Tecnología
+Elementos de protección
+Insumos generales
+7. unidades_medida
+
+Sirve para definir cómo se mide cada producto.
+
+Campo	Tipo sugerido	Descripción
+id_unidad	PK	Identificador
+nombre	varchar	Nombre
+abreviatura	varchar	Abreviatura
+activo	boolean	Estado
+
+Ejemplos:
+
+Unidad - UND
+Caja - CJ
+Resma - RES
+Litro - L
+Kilogramo - KG
+Paquete - PAQ
+8. bodegas
+
+Sirve para saber dónde está ubicado el inventario.
+
+Campo	Tipo sugerido	Descripción
+id_bodega	PK	Identificador
+nombre	varchar	Nombre de la bodega
+descripcion	varchar	Descripción
+activo	boolean	Estado
+
+Ejemplos:
+
+Bodega principal
+Bodega administrativa
+Bodega de eventos
+Bodega de respaldo
+9. productos
+
+Tabla principal de productos.
+
+Campo	Tipo sugerido	Descripción
+id_producto	PK	Identificador
+codigo_interno	varchar	Código interno del producto
+nombre	varchar	Nombre del producto
+descripcion	varchar	Descripción
+id_categoria	FK	Categoría
+id_unidad	FK	Unidad de medida
+stock_minimo	decimal	Cantidad mínima recomendada
+activo	boolean	Estado
+creado_por	FK	Usuario que creó el producto
+fecha_creacion	datetime	Fecha de creación
+
+Relaciones:
+
+categorias_producto 1 ---- N productos
+unidades_medida 1 ---- N productos
+usuarios 1 ---- N productos
+
+Ejemplo:
+
+Código: P001
+Producto: Papel tamaño carta
+Categoría: Papelería
+Unidad: Resma
+Stock mínimo: 10
+4. Tabla de stock actual
+10. stock_producto_bodega
+
+Esta tabla guarda el stock actual por producto y bodega.
+
+Campo	Tipo sugerido	Descripción
+id_stock	PK	Identificador
+id_producto	FK	Producto
+id_bodega	FK	Bodega
+stock_actual	decimal	Cantidad actual disponible
+fecha_actualizacion	datetime	Última actualización
+
+Relación:
+
+productos 1 ---- N stock_producto_bodega
+bodegas 1 ---- N stock_producto_bodega
+
+Regla importante:
+
+Un producto solo debe tener un registro de stock por bodega.
+
+Ejemplo:
+
+Producto	Bodega	Stock actual
+Papel carta	Bodega principal	100
+Guantes nitrilo	Bodega principal	25
+5. Tabla principal de movimientos
+11. movimientos_inventario
+
+Esta es la tabla más importante del modelo.
+
+Aquí se guarda todo lo que pasa con el inventario.
+
+Campo	Tipo sugerido	Descripción
+id_movimiento	PK	Identificador
+consecutivo	varchar	Código del movimiento
+id_producto	FK	Producto
+id_bodega	FK	Bodega
+tipo_movimiento	varchar	Tipo de movimiento
+cantidad	decimal	Cantidad movida
+stock_anterior	decimal	Stock antes del movimiento
+stock_nuevo	decimal	Stock después del movimiento
+observacion	varchar/text	Observación del usuario
+estado_movimiento	varchar	Estado operativo
+estado_empalme	varchar	Estado frente a DsNube
+registrado_por	FK	Usuario que registró
+fecha_registro	datetime	Fecha del registro
+anulado_por	FK nullable	Usuario que anuló
+fecha_anulacion	datetime nullable	Fecha de anulación
+motivo_anulacion	varchar/text nullable	Motivo de anulación
+
+Tipos de movimiento:
+
+SALDO_INICIAL
+ENTRADA
+ABASTECIMIENTO
+SALIDA
+AJUSTE_POSITIVO
+AJUSTE_NEGATIVO
+
+Estados operativos:
+
+ACTIVO
+ANULADO
+
+Estados de empalme:
+
+PENDIENTE_REVISION
+OBSERVADO
+LISTO_DSNUBE
+CARGADO_DSNUBE
+
+Relaciones:
+
+productos 1 ---- N movimientos_inventario
+bodegas 1 ---- N movimientos_inventario
+usuarios 1 ---- N movimientos_inventario
+
+Ejemplo:
+
+Producto	Tipo	Cantidad	Stock anterior	Stock nuevo
+Papel carta	SALDO_INICIAL	100	0	100
+Papel carta	ENTRADA	50	100	150
+Papel carta	SALIDA	20	150	130
+6. Tabla para el rol de empalme
+12. revision_empalme_movimiento
+
+Esta tabla guarda las revisiones realizadas por el rol de empalme con DsNube.
+
+Sirve para no perder historial de quién revisó, observó o marcó como listo un movimiento.
+
+Campo	Tipo sugerido	Descripción
+id_revision	PK	Identificador
+id_movimiento	FK	Movimiento revisado
+id_usuario	FK	Usuario del rol de empalme
+accion	varchar	Acción realizada
+observacion	varchar/text	Comentario de revisión
+fecha_revision	datetime	Fecha de revisión
+
+Acciones posibles:
+
+REVISADO
+OBSERVADO
+LISTO_DSNUBE
+CARGADO_DSNUBE
+
+Relaciones:
+
+movimientos_inventario 1 ---- N revision_empalme_movimiento
+usuarios 1 ---- N revision_empalme_movimiento
+
+Ejemplo:
+
+Movimiento	Acción	Usuario	Observación
+MOV-001	LISTO_DSNUBE	Usuario empalme	Información correcta
+MOV-002	OBSERVADO	Usuario empalme	Falta soporte
+7. Tabla opcional de soportes
+13. soportes_movimiento
+
+Esta tabla es opcional, pero útil si quieres adjuntar evidencias.
+
+Campo	Tipo sugerido	Descripción
+id_soporte	PK	Identificador
+id_movimiento	FK	Movimiento asociado
+nombre_archivo	varchar	Nombre del archivo
+ruta_archivo	varchar/text	Ruta o URL del archivo
+tipo_archivo	varchar	PDF, imagen, Excel, etc.
+cargado_por	FK	Usuario que cargó
+fecha_cargue	datetime	Fecha de cargue
+
+Relación:
+
+movimientos_inventario 1 ---- N soportes_movimiento
+8. Diagrama relacional en texto
+usuarios
+   | 1
+   |----< usuario_rol >---- roles
+   |                         |
+   |                         |----< rol_permiso >---- permisos
+   |
+   |----< productos
+   |
+   |----< movimientos_inventario
+   |
+   |----< revision_empalme_movimiento
+
+
+categorias_producto
+   |----< productos
+
+
+unidades_medida
+   |----< productos
+
+
+productos
+   |----< stock_producto_bodega
+   |----< movimientos_inventario
+
+
+bodegas
+   |----< stock_producto_bodega
+   |----< movimientos_inventario
+
+
+movimientos_inventario
+   |----< revision_empalme_movimiento
+   |----< soportes_movimiento
+9. Lógica de actualización de stock
+
+Cuando se registra un movimiento, la aplicación debe hacer esto:
+
+1. Buscar el stock actual del producto en la bodega.
+2. Guardar ese valor como stock_anterior.
+3. Calcular el nuevo stock.
+4. Guardar el movimiento.
+5. Actualizar la tabla stock_producto_bodega.
+6. Dejar el movimiento con estado_empalme = PENDIENTE_REVISION.
+Movimientos que suman stock
+SALDO_INICIAL
+ENTRADA
+ABASTECIMIENTO
+AJUSTE_POSITIVO
+Movimientos que restan stock
+SALIDA
+AJUSTE_NEGATIVO
+
+Ejemplo:
+
+Stock actual: 100
+Movimiento: SALIDA
+Cantidad: 20
+Stock nuevo: 80
+10. Reglas del modelo
+Regla 1
+
+El stock no se edita manualmente.
+
+Se actualiza mediante movimientos.
+
+Regla 2
+
+No se permite salida mayor al stock disponible.
+
+Ejemplo:
+
+Stock actual: 10
+Salida solicitada: 15
+Resultado: No permitido
+Regla 3
+
+Todo movimiento queda en historial.
+
+Aunque después sea observado o anulado, debe quedar registro.
+
+Regla 4
+
+El rol de empalme no borra movimientos.
+
+Solo puede:
+
+Revisar
+Observar
+Marcar como listo para DsNube
+Marcar como cargado o empalmado
+Regla 5
+
+Solo movimientos con estado:
+
+LISTO_DSNUBE
+
+deberían considerarse listos para el cargue o empalme con DsNube.
+
+11. Modelo mínimo recomendado
+
+Si quieres hacerlo muy sencillo para primera versión, estas serían las tablas mínimas:
+
+usuarios
+roles
+permisos
+usuario_rol
+rol_permiso
+
+categorias_producto
+unidades_medida
+bodegas
+productos
+stock_producto_bodega
+movimientos_inventario
+revision_empalme_movimiento
+
+La tabla de soportes puede quedar para después:
+
+soportes_movimiento
+12. Resumen funcional del modelo
+
+El modelo funciona así:
+
+1. El administrador crea usuarios, roles y permisos.
+2. El gestor de inventario crea productos.
+3. El gestor registra existencias iniciales, entradas, abastecimientos o salidas.
+4. Cada movimiento actualiza el stock.
+5. Cada movimiento queda guardado en historial.
+6. El rol de empalme consulta los movimientos.
+7. El rol de empalme observa o marca como listo para DsNube.
+8. Lo marcado como listo queda disponible para reporte, cargue o empalme.
+
+Mi recomendación es empezar con este modelo y no meter todavía tablas de API, sincronización automática o integración pesada. Para esta etapa, el plus del empalme se resuelve bien con la tabla revision_empalme_movimiento y el campo estado_empalme en movimientos_inventario.

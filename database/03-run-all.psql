@@ -1,0 +1,4 @@
+\i database/00-create-role-and-db.sql
+\connect plantilla_inicio
+\i database/01-schema.sql
+\i database/02-seed-security.sql

@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@types/multer": "^2.1.0",
+    "exceljs": "^4.4.0",
+    "multer": "^2.1.1",
+    "pdfmake": "^0.3.9"
+  }
+}

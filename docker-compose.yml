@@ -1,0 +1,80 @@
+name: plantilla-inicio
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: plantilla_inicio_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-plantilla}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-plantilla}
+      POSTGRES_DB: ${POSTGRES_DB:-plantilla_inicio}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-plantilla} -d ${POSTGRES_DB:-plantilla_inicio}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: plantilla-inicio-api:latest
+    container_name: plantilla_inicio_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-plantilla}:${POSTGRES_PASSWORD:-plantilla}@db:5432/${POSTGRES_DB:-plantilla_inicio}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:4200,http://localhost:4200}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      DB_AUTO_INIT: ${DB_AUTO_INIT:-true}
+      DB_RUN_SEED: ${DB_RUN_SEED:-true}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-johanstian20@hotmail.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-rmmr}
+      ADMIN_NOMBRES: ${ADMIN_NOMBRES:-Johan Sebastian}
+      ADMIN_APELLIDOS: ${ADMIN_APELLIDOS:-Admin}
+      ADMIN_CELULAR: ${ADMIN_CELULAR:-3000000000}
+    ports:
+      - "${API_PORT:-3000}:3000"
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: plantilla-inicio-web:latest
+    container_name: plantilla_inicio_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-4200}:80"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: plantilla_inicio_pgadmin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@plantilla.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+  pgadmin_data:
