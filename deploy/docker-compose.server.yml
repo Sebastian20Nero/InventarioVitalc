@@ -30,11 +30,12 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-plantilla}:${POSTGRES_PASSWORD:-plantilla}@db:5432/${POSTGRES_DB:-plantilla_inicio}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-plantilla}:${POSTGRES_PASSWORD:-plantilla}@db:5432/${POSTGRES_DB:-plantilla_inicio}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
-      PRISMA_RUN_SEED: ${PRISMA_RUN_SEED:-false}
+      DB_AUTO_INIT: ${DB_AUTO_INIT:-true}
+      DB_RUN_SEED: ${DB_RUN_SEED:-true}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-johanstian20@hotmail.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-rmmr}
       ADMIN_NOMBRES: ${ADMIN_NOMBRES:-Johan Sebastian}

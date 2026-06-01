@@ -1,5 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsIn, IsNumberString, IsOptional, IsString } from 'class-validator';
+
+const aNumberString = ({ value }: { value: unknown }) =>
+  value === undefined || value === null || value === '' ? value : String(value);
 
 export const TIPOS_MOVIMIENTO = [
   'SALDO_INICIAL',
@@ -26,6 +30,7 @@ export class CreateMovimientoDto {
   tipoMovimiento!: TipoMovimiento;
 
   @ApiProperty({ example: '5' })
+  @Transform(aNumberString)
   @IsNumberString()
   cantidad!: string;
 
