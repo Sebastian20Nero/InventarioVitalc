@@ -27,7 +27,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
 
     if ((process.env.DB_RUN_SEED ?? 'true').toLowerCase() === 'true') {
-      await runSeed(this);
+      try {
+        await runSeed(this);
+      } catch (error) {
+        // El seed no debe tumbar el arranque: el API queda arriba y el error
+        // queda visible en logs para diagnosticar sin bucle de Restarting.
+        this.logger.error('El seed fallo, el API arranca igualmente.', error as Error);
+      }
     }
   }
 

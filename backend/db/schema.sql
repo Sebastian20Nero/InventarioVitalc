@@ -212,3 +212,17 @@ CREATE INDEX IF NOT EXISTS "MovimientoInventario_estadoOperativo_idx" ON "Movimi
 CREATE INDEX IF NOT EXISTS "MovimientoInventario_fechaRegistro_idx" ON "MovimientoInventario"("fechaRegistro");
 CREATE INDEX IF NOT EXISTS "RevisionEmpalme_movimientoId_idx" ON "RevisionEmpalme"("movimientoId");
 CREATE INDEX IF NOT EXISTS "RevisionEmpalme_usuarioId_idx" ON "RevisionEmpalme"("usuarioId");
+
+-- Compatibilidad con bases creadas antes por Prisma (que dejaba "updatedAt"
+-- NOT NULL pero SIN default). Forzamos el default para que los INSERT que no
+-- envian "updatedAt" no fallen. Es idempotente.
+ALTER TABLE "Persona" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "Usuario" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "Rol" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "Permiso" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "CategoriaProducto" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "UnidadMedida" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "Bodega" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "Producto" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "MovimientoInventario" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "ConfiguracionDsnube" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;

@@ -352,16 +352,35 @@ docker compose --env-file .env down
 #    La api aplica schema.sql + seed SQL automaticamente al arrancar
 docker compose --env-file .env up -d --build
 
-# 3. Ver que los 4 contenedores quedaron Up
+# 3. Ver que los 4 contenedores quedaron Up (api NO debe estar "Restarting")
 docker compose ps
 
-# 4. (Opcional) Ver el arranque de la api en vivo
-docker compose logs api -f
+# 4. Ver el arranque de la api: debe decir "Conexion a PostgreSQL establecida",
+#    "Esquema aplicado" y "Seed lista."
+docker compose logs api --tail 40
 ```
 
-> Para empezar **100% de cero borrando la base**, agrega `-v` al `down`:
-> `docker compose --env-file .env down -v`. Como el seed es automatico, al
-> volver a subir con `up -d --build` la base se recrea y se siembra sola.
+> **Importante si vienes de la version con Prisma:** la base vieja tiene las
+> tablas creadas por Prisma (con `updatedAt` sin default) y puede chocar con el
+> seed. Para empezar **100% limpio borrando la base**, usa `-v`:
+>
+> ```powershell
+> docker compose --env-file .env down -v
+> docker compose --env-file .env up -d --build
+> ```
+>
+> Como el seed es automatico, al volver a subir la base se recrea y se siembra
+> sola con el usuario admin.
+
+### Verificar que el backend responde
+
+```powershell
+# Health directo del API (debe dar 200)
+curl.exe -i http://localhost:3001/health
+
+# Health a traves del proxy del frontend (debe dar 200)
+curl.exe -i http://localhost:4200/api/health
+```
 
 Luego abre `http://localhost:4200` e inicia sesion con
 `johanstian20@hotmail.com` / `rmmr`.
@@ -458,10 +477,32 @@ powershell -ExecutionPolicy Bypass -File .\scripts\reset-stack.ps1 -HardReset
 
 Despues hay que [reinicializar la base desde pgAdmin](#inicializar-la-base-desde-pgadmin).
 
-### "no such table" en login (P2021)
+### El `api` queda en "Restarting" y el frontend da "502 Bad Gateway"
 
-La base existe pero no tiene tablas. Cargaste solo el `01-schema.sql` o no
-cargaste nada. Revisa con la query de [verificacion rapida](#4-verificacion-rapida).
+El backend crashea durante el arranque (dentro de `onModuleInit`) y NestJS nunca
+llega a escuchar, asi que Nginx no tiene a quien enrutar `/api` y responde `502`.
+
+Diagnostica siempre con los logs:
+
+```powershell
+docker compose logs api --tail 60
+```
+
+Causas tipicas:
+
+- **`null value in column "updatedAt" ... violates not-null constraint`**: la
+  base tiene tablas viejas creadas por Prisma (sin default en `updatedAt`). El
+  `schema.sql` ya fuerza el default con `ALTER TABLE` al arrancar, pero si tu
+  imagen/codigo esta desactualizado, reconstruye (`up -d --build`) o empieza
+  limpio con `down -v`.
+- **`Cannot find module '/app/dist/.../main.js'`**: el `docker-entrypoint.sh`
+  apunta a una ruta vieja. El entrypoint actual **busca** `main.js` dentro de
+  `dist/`, asi que basta reconstruir la imagen del `api`.
+- **`PostgreSQL no disponible (intento x/15)`**: la base tardo en levantar. El
+  `api` reintenta solo; espera unos segundos.
+
+Tras el fix, el seed ya **no tumba** el arranque: si algo falla en el seed, el
+API arranca igual y veras `El seed fallo, el API arranca igualmente.` en logs.
 
 ### El frontend no conecta a la API
 
@@ -556,5 +597,6 @@ Modulos ya incluidos:
 - administracion de usuarios
 - administracion de roles
 - administracion de permisos
-#   I n v e n T a r i o V i t a l  
+#   I n v e n T a r i o V i t a l 
+ 
  
