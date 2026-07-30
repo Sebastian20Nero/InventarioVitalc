@@ -12,104 +12,84 @@ import { Categoria, Producto, Unidad } from '../../core/models/inventario.models
   imports: [CommonModule, FormsModule],
   template: `
     <section class="page">
-      <div class="grid two">
-        <form class="card" (ngSubmit)="guardarProducto()">
-          <h2>{{ editando() ? 'Editar producto' : 'Nuevo producto' }}</h2>
+      <form class="card horizontal-form-card" (ngSubmit)="guardarProducto()">
+        <div class="form-header">
+          <div class="form-title-group">
+            <h2>{{ editando() ? 'Editar producto' : 'Nuevo producto' }}</h2>
+            <span class="badge-editing" *ngIf="editando()">Código: {{ editando()?.codigoInterno }}</span>
+          </div>
+          <div class="quick-stats" *ngIf="!editando()">
+            <span class="stat-chip"><strong>{{ productos().length }}</strong> Total</span>
+            <span class="stat-chip"><strong>{{ productosActivos() }}</strong> Activos</span>
+            <span class="stat-chip"><strong>{{ categorias().length }}</strong> Categorías</span>
+            <span class="stat-chip"><strong>{{ unidades().length }}</strong> Unidades</span>
+          </div>
+        </div>
 
-          <div class="grid two">
-            <label>
-              Código interno
-              <input [(ngModel)]="form.codigoInterno" name="codigo" required [disabled]="!!editando()" />
-            </label>
-            <label>
-              Nombre
-              <input [(ngModel)]="form.nombre" name="nombre" required />
+        <div class="horizontal-fields">
+          <div class="field col-code">
+            <label>Código *</label>
+            <input [(ngModel)]="form.codigoInterno" name="codigo" required [disabled]="!!editando()" placeholder="CÓDIGO" />
+          </div>
+
+          <div class="field col-name">
+            <label>Nombre *</label>
+            <input [(ngModel)]="form.nombre" name="nombre" required placeholder="Nombre del producto" />
+          </div>
+
+          <div class="field col-desc">
+            <label>Descripción</label>
+            <input [(ngModel)]="form.descripcion" name="descripcion" placeholder="Descripción breve" />
+          </div>
+
+          <div class="field col-cat">
+            <label>Categoría *</label>
+            <select [(ngModel)]="form.categoriaId" name="categoria" required>
+              <option value="">— Categoría —</option>
+              <option *ngFor="let c of categorias()" [value]="c.idCategoria">{{ c.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="field col-unit">
+            <label>Unidad *</label>
+            <select [(ngModel)]="form.unidadId" name="unidad" required>
+              <option value="">— Unidad —</option>
+              <option *ngFor="let u of unidades()" [value]="u.idUnidad">{{ u.nombre }} ({{ u.abreviatura }})</option>
+            </select>
+          </div>
+
+          <div class="field col-stock">
+            <label>Stock mín.</label>
+            <input [(ngModel)]="form.stockMinimo" name="stockMinimo" type="number" min="0" step="0.0001" placeholder="0" />
+          </div>
+
+          <div class="field col-active" *ngIf="editando()">
+            <label>Estado</label>
+            <label class="checkbox-inline">
+              <input [(ngModel)]="form.activo" name="activo" type="checkbox" /> Activo
             </label>
           </div>
 
-          <label>
-            Descripción
-            <input [(ngModel)]="form.descripcion" name="descripcion" />
-          </label>
-
-          <div class="grid two">
-            <label>
-              Categoría
-              <select [(ngModel)]="form.categoriaId" name="categoria" required>
-                <option value="">— Seleccionar —</option>
-                <option *ngFor="let c of categorias()" [value]="c.idCategoria">{{ c.nombre }}</option>
-              </select>
-            </label>
-            <label>
-              Unidad de medida
-              <select [(ngModel)]="form.unidadId" name="unidad" required>
-                <option value="">— Seleccionar —</option>
-                <option *ngFor="let u of unidades()" [value]="u.idUnidad">{{ u.nombre }} ({{ u.abreviatura }})</option>
-              </select>
-            </label>
-          </div>
-
-          <label>
-            Stock mínimo
-            <input [(ngModel)]="form.stockMinimo" name="stockMinimo" type="number" min="0" step="0.0001" />
-          </label>
-
-          @if (editando()) {
-            <label class="checkbox">
-              <input [(ngModel)]="form.activo" name="activo" type="checkbox" />
-              Producto activo
-            </label>
-          }
-
-          <p class="error" *ngIf="error()">{{ error() }}</p>
-          <div class="actions">
-            <button type="submit">{{ editando() ? 'Guardar cambios' : 'Crear producto' }}</button>
-            @if (editando()) {
-              <button class="ghost" type="button" (click)="cancelar()">Cancelar</button>
-            }
-          </div>
-        </form>
-
-          <div class="card stats-card" *ngIf="!editando()">
-          <h3>Resumen</h3>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-number">{{ productos().length }}</div>
-              <div class="stat-label">Total productos</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">{{ productosActivos() }}</div>
-              <div class="stat-label">Activos</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">{{ categorias().length }}</div>
-              <div class="stat-label">Categorías</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">{{ unidades().length }}</div>
-              <div class="stat-label">Unidades</div>
+          <div class="field col-actions">
+            <label class="action-label">&nbsp;</label>
+            <div class="form-actions">
+              <button type="submit" class="btn-submit">{{ editando() ? 'Guardar' : 'Crear' }}</button>
+              <button class="ghost" type="button" *ngIf="editando()" (click)="cancelar()">Cancelar</button>
             </div>
           </div>
         </div>
 
-        <div class="card stock-card" *ngIf="editando() && stockProducto().length > 0">
-          <h3>Stock actual — {{ editando()!.nombre }}</h3>
-          <table>
-            <thead><tr><th>Bodega</th><th>Stock actual</th><th>Actualizado</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let s of stockProducto()">
-                <td>{{ s.bodega.nombre }}</td>
-                <td><strong>{{ s.stockActual }}</strong> {{ editando()!.unidad.abreviatura }}</td>
-                <td>{{ s.updatedAt | date:'dd/MM/yyyy HH:mm' }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <p class="error" *ngIf="error()">{{ error() }}</p>
+
+        <div class="stock-inline-info" *ngIf="editando() && stockProducto().length > 0">
+          <span class="stock-title">Stock por bodega:</span>
+          <div class="stock-badges">
+            <span class="stock-badge" *ngFor="let s of stockProducto()">
+              <strong>{{ s.bodega.nombre }}:</strong> {{ s.stockActual }} {{ editando()!.unidad.abreviatura }}
+            </span>
+          </div>
         </div>
-        <div class="card stock-card" *ngIf="editando() && stockProducto().length === 0">
-          <h3>Stock actual — {{ editando()!.nombre }}</h3>
-          <p class="muted">Sin movimientos registrados en ninguna bodega.</p>
-        </div>
-      </div>
+      </form>
 
       <div class="card">
         <div class="card-header">
@@ -161,12 +141,39 @@ import { Categoria, Producto, Unidad } from '../../core/models/inventario.models
     </section>
   `,
   styles: [`
-    .stats-card { display: flex; flex-direction: column; gap: 1rem; }
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .stat-item { background: var(--surface-2, #f4f4f5); border-radius: 8px; padding: 1rem; text-align: center; }
-    .stat-number { font-size: 2rem; font-weight: 700; color: var(--primary, #2563eb); }
-    .stat-label { font-size: 0.8rem; color: var(--muted, #6b7280); margin-top: 0.25rem; }
-    .stock-card { align-self: start; }
+    .horizontal-form-card { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem 1.25rem; }
+    .form-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .form-title-group { display: flex; align-items: center; gap: 0.75rem; }
+    .form-header h2 { margin: 0; font-size: 1.15rem; }
+    .badge-editing { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+    .quick-stats { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .stat-chip { background: #f3f4f6; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; color: #4b5563; }
+    .stat-chip strong { color: #2563eb; font-weight: 700; }
+    
+    .horizontal-fields { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
+    .field { display: flex; flex-direction: column; gap: 0.25rem; }
+    .field label { font-size: 0.8rem; font-weight: 600; color: #374151; }
+    .field input, .field select { padding: 0.5rem 0.65rem; font-size: 0.9rem; height: 38px; border-radius: 8px; }
+
+    .col-code { flex: 1; min-width: 110px; max-width: 140px; }
+    .col-name { flex: 2; min-width: 160px; }
+    .col-desc { flex: 2; min-width: 160px; }
+    .col-cat { flex: 1.5; min-width: 140px; }
+    .col-unit { flex: 1.2; min-width: 120px; }
+    .col-stock { flex: 1; min-width: 90px; max-width: 110px; }
+    .col-active { display: flex; flex-direction: column; justify-content: center; min-width: 90px; }
+    .checkbox-inline { display: flex; align-items: center; gap: 0.4rem; height: 38px; font-weight: normal; cursor: pointer; font-size: 0.85rem; }
+    .checkbox-inline input { width: auto; height: auto; cursor: pointer; }
+    .col-actions { display: flex; flex-direction: column; }
+    .action-label { user-select: none; }
+    .form-actions { display: flex; gap: 0.5rem; }
+    .form-actions button { height: 38px; padding: 0 1rem; font-size: 0.85rem; border-radius: 8px; white-space: nowrap; }
+
+    .stock-inline-info { display: flex; align-items: center; gap: 0.75rem; background: #f8fafc; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.85rem; flex-wrap: wrap; margin-top: 0.25rem; }
+    .stock-title { font-weight: 600; color: #475569; }
+    .stock-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .stock-badge { background: #ffffff; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; }
+
     .card-header { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
     .filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .filter-input { flex: 1; min-width: 200px; }
