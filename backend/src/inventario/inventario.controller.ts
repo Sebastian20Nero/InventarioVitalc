@@ -1,6 +1,21 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
+import type { Response } from 'express';
+import { memoryStorage } from 'multer';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePerm } from '../common/decorators/require-perm.decorator';
@@ -17,6 +32,32 @@ type AuthenticatedRequest = Request & { user: AuthUser };
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class InventarioController {
   constructor(private readonly inventarioService: InventarioService) {}
+
+  @Get('stock/plantilla-excel')
+  @RequirePerm('STOCK_CONSULTAR')
+  async descargarPlantillaStock(@Res() res: Response) {
+    const buffer = await this.inventarioService.generarPlantillaStock();
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="plantilla-stock.xlsx"',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
+  }
+
+  @Post('stock/importar-excel')
+  @RequirePerm('MOVIMIENTO_CREAR')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
+  importarStockExcel(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    if (!file) {
+      return { data: { procesados: 0, errores: ['No se recibió ningún archivo.'] } };
+    }
+    return this.inventarioService.importarStockDesdeExcel(file.buffer, request.user.userId);
+  }
 
   @Get('stock')
   @RequirePerm('STOCK_CONSULTAR')

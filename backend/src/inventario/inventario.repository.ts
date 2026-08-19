@@ -131,10 +131,24 @@ export class InventarioRepository {
     );
   }
 
+  buscarProductoPorCodigo(codigoInterno: string) {
+    return this.db.one<{ idProducto: string; codigoInterno: string; nombre: string; activo: boolean }>(
+      'SELECT "idProducto", "codigoInterno", "nombre", "activo" FROM "Producto" WHERE LOWER("codigoInterno") = LOWER($1)',
+      [codigoInterno.trim()],
+    );
+  }
+
   buscarBodegaPorId(idBodega: bigint) {
     return this.db.one<{ idBodega: string; activo: boolean }>(
       'SELECT "idBodega", "activo" FROM "Bodega" WHERE "idBodega" = $1',
       [idBodega.toString()],
+    );
+  }
+
+  buscarBodegaPorNombre(nombre: string) {
+    return this.db.one<{ idBodega: string; nombre: string; activo: boolean }>(
+      'SELECT "idBodega", "nombre", "activo" FROM "Bodega" WHERE LOWER("nombre") = LOWER($1)',
+      [nombre.trim()],
     );
   }
 

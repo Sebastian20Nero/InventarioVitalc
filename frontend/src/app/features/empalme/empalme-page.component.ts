@@ -200,6 +200,7 @@ type Tab = 'movimientos' | 'reporte' | 'importar' | 'configuracion';
             <label>
               Archivo Excel
               <input type="file" accept=".xlsx,.xls" (change)="onFileChange($event)" />
+              <span class="file-name" *ngIf="archivoNombre()">{{ archivoNombre() }}</span>
             </label>
             <button
               type="button"
@@ -336,6 +337,7 @@ type Tab = 'movimientos' | 'reporte' | 'importar' | 'configuracion';
     .success { color: #15803d; font-weight: 600; margin: 0; }
     .import-result { margin-top: 0.75rem; padding: 0.75rem; background: #f0fdf4; border-radius: 8px; }
     .import-result ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+    .file-name { background:#e5e7eb; padding:0.2rem 0.5rem; border-radius:4px; margin-left:0.5rem; font-size:0.85rem; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: grid; place-items: center; z-index: 100; }
     .modal-card { background: white; border-radius: 16px; padding: 2rem; width: min(100%, 480px); display: grid; gap: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
     .modal-card h3, .modal-card p { margin: 0; }
@@ -375,6 +377,7 @@ export class EmpalmePageComponent implements OnInit {
   readonly errorConfig = signal('');
   readonly exitoConfig = signal('');
   configForm = { url: '', usuario: '', password: '' };
+  readonly archivoNombre = signal<string>('');
 
   ngOnInit() {
     this.cargarMovimientos();
@@ -499,10 +502,14 @@ export class EmpalmePageComponent implements OnInit {
 
   onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.archivoSeleccionado.set(input.files?.[0] ?? null);
+    const file = input.files?.[0] ?? null;
+    this.archivoSeleccionado.set(file);
+    this.archivoNombre.set(file?.name ?? '');
     this.resultadoImport.set(null);
     this.errorImport.set('');
   }
+
+
 
   importarExcel() {
     const file = this.archivoSeleccionado();

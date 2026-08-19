@@ -95,6 +95,11 @@ export class EmpalmeService {
     if (!file?.buffer) {
       throw new BadRequestException('Archivo Excel requerido');
     }
+    // Validar tipo MIME del archivo
+    const allowedMime = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+    if (!allowedMime.includes(file.mimetype)) {
+      throw new BadRequestException('Tipo de archivo no soportado. Por favor suba un archivo .xlsx o .xls');
+    }
 
     const workbook = new Workbook();
     await workbook.xlsx.load(file.buffer as unknown as ArrayBuffer);

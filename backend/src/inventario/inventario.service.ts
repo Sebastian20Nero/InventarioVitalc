@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import * as ExcelJS from 'exceljs';
 import { Decimal } from 'decimal.js';
 import { PoolClient } from 'pg';
 import { AnularMovimientoDto } from './dto/anular-movimiento.dto';
-import { CreateMovimientoDto, TipoMovimiento } from './dto/create-movimiento.dto';
+import { CreateMovimientoDto, TipoMovimiento, TIPOS_MOVIMIENTO } from './dto/create-movimiento.dto';
 import { InventarioRepository } from './inventario.repository';
 
 type StockConRelaciones = Awaited<ReturnType<InventarioRepository['listarStock']>>[number];
@@ -30,6 +31,119 @@ export class InventarioService {
       throw new BadRequestException(`${fieldName} debe ser mayor a cero`);
     }
     return decimal;
+  }
+
+  async importarStockDesdeExcel(buffer: Buffer, userId: string) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer.buffer as ArrayBuffer);
+    const sheet = workbook.worksheets[0];
+
+    if (!sheet) {
+      throw new BadRequestException('El archivo Excel no tiene hojas de cálculo.');
+    }
+
+    const TIPOS_PERMITIDOS: TipoMovimiento[] = ['SALDO_INICIAL', 'ENTRADA', 'ABASTECIMIENTO', 'AJUSTE_POSITIVO'];
+    const procesados: string[] = [];
+    const errores: string[] = [];
+
+    for (let i = 2; i <= sheet.rowCount; i++) {
+      const row = sheet.getRow(i);
+      const codigoProducto = String(row.getCell(1).value ?? '').trim();
+      const nombreBodega  = String(row.getCell(2).value ?? '').trim();
+      const cantidadRaw   = String(row.getCell(3).value ?? '').trim();
+      const tipoRaw       = String(row.getCell(4).value ?? 'SALDO_INICIAL').trim().toUpperCase() as TipoMovimiento;
+      const observacion   = String(row.getCell(5).value ?? '').trim() || undefined;
+
+      if (!codigoProducto && !nombreBodega && !cantidadRaw) continue; // fila vacía
+
+      const fila = `Fila ${i}`;
+
+      if (!codigoProducto) { errores.push(`${fila}: falta codigoProducto`); continue; }
+      if (!nombreBodega)  { errores.push(`${fila}: falta codigoBodega`);   continue; }
+      if (!cantidadRaw || isNaN(Number(cantidadRaw)) || Number(cantidadRaw) <= 0) {
+        errores.push(`${fila}: cantidad inválida ("${cantidadRaw}")`);
+        continue;
+      }
+      if (!TIPOS_PERMITIDOS.includes(tipoRaw)) {
+        errores.push(`${fila}: tipo "${tipoRaw}" no permitido. Use: ${TIPOS_PERMITIDOS.join(', ')}`);
+        continue;
+      }
+
+      try {
+        const [producto, bodega] = await Promise.all([
+          this.inventarioRepository.buscarProductoPorCodigo(codigoProducto),
+          this.inventarioRepository.buscarBodegaPorNombre(nombreBodega),
+        ]);
+
+        if (!producto || !producto.activo) {
+          errores.push(`${fila}: producto "${codigoProducto}" no encontrado o inactivo`);
+          continue;
+        }
+        if (!bodega || !bodega.activo) {
+          errores.push(`${fila}: bodega "${nombreBodega}" no encontrada o inactiva`);
+          continue;
+        }
+
+        await this.registrarMovimiento(
+          {
+            productoId: producto.idProducto,
+            bodegaId:   bodega.idBodega,
+            tipoMovimiento: tipoRaw,
+            cantidad: cantidadRaw,
+            observacion,
+          },
+          userId,
+        );
+        procesados.push(codigoProducto);
+      } catch (err: any) {
+        errores.push(`${fila}: ${err?.message ?? 'Error desconocido'}`);
+      }
+    }
+
+    return { procesados: procesados.length, errores };
+  }
+
+  async generarPlantillaStock(): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Cargue masivo stock');
+
+    sheet.columns = [
+      { header: 'codigoProducto', key: 'codigoProducto', width: 20 },
+      { header: 'codigoBodega',   key: 'codigoBodega',   width: 25 },
+      { header: 'cantidad',       key: 'cantidad',       width: 12 },
+      { header: 'tipo',           key: 'tipo',           width: 20 },
+      { header: 'observacion',    key: 'observacion',    width: 35 },
+    ];
+
+    // Estilo encabezados
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D4ED8' } };
+    headerRow.alignment = { horizontal: 'center' };
+
+    // Fila de ejemplo
+    sheet.addRow({
+      codigoProducto: 'PG-86',
+      codigoBodega:   'Bodega principal',
+      cantidad:       '50',
+      tipo:           'SALDO_INICIAL',
+      observacion:    'Saldo inicial agosto 2026',
+    });
+    sheet.addRow({
+      codigoProducto: 'PG-88',
+      codigoBodega:   'Bodega principal',
+      cantidad:       '30',
+      tipo:           'ENTRADA',
+      observacion:    '',
+    });
+
+    // Nota de tipos válidos en la columna D
+    const nota = sheet.getCell('G1');
+    nota.value = `Tipos válidos: ${['SALDO_INICIAL', 'ENTRADA', 'ABASTECIMIENTO', 'AJUSTE_POSITIVO'].join(' | ')}`;
+    nota.font = { italic: true, color: { argb: 'FF6B7280' } };
+
+    const arrayBuffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(arrayBuffer);
   }
 
   async listarStock() {

@@ -59,6 +59,44 @@ interface FilaStock {
         </div>
       </div>
 
+      <!-- Cargue masivo desde Excel -->
+      <div class="card upload-card">
+        <div class="upload-header">
+          <div>
+            <h3 style="margin:0 0 0.25rem">📥 Cargue masivo de stock</h3>
+            <p class="muted" style="margin:0;font-size:0.88rem">
+              Sube un Excel con <strong>codigoProducto</strong>, <strong>codigoBodega</strong>,
+              <strong>cantidad</strong>, <strong>tipo</strong> y observación (opcional).
+            </p>
+          </div>
+          <button class="ghost btn-sm" type="button" (click)="descargarPlantilla()">
+            ⬇ Descargar plantilla
+          </button>
+        </div>
+
+        <div class="upload-row" style="margin-top:0.75rem">
+          <label class="file-label">
+            <input type="file" accept=".xlsx,.xls" (change)="onArchivoChange($event)" />
+            <span>{{ archivoNombre() || 'Seleccionar archivo Excel…' }}</span>
+          </label>
+          <button
+            type="button"
+            [disabled]="!archivoStock() || importandoStock()"
+            (click)="importarStock()"
+          >
+            {{ importandoStock() ? 'Importando…' : 'Importar' }}
+          </button>
+        </div>
+
+        <div class="import-result" *ngIf="resultadoStock()">
+          <p class="success">✓ {{ resultadoStock()!.procesados }} registro(s) importado(s) correctamente.</p>
+          <ul *ngIf="resultadoStock()!.errores.length > 0">
+            <li *ngFor="let e of resultadoStock()!.errores" class="error-item">⚠ {{ e }}</li>
+          </ul>
+        </div>
+        <p class="error-msg" *ngIf="errorStock()">{{ errorStock() }}</p>
+      </div>
+
       <!-- Tabla -->
       <div class="card">
         <table>
@@ -132,6 +170,20 @@ interface FilaStock {
     .badge-bajo { background: #fef3c7; color: #92400e; display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
     .empty { text-align: center; color: #6b7280; padding: 2rem !important; }
     code { background: #f4f4f5; padding: 2px 6px; border-radius: 4px; font-size: 0.82em; }
+    /* Upload card */
+    .upload-card { border: 2px dashed #e5e7eb; background: #f9fafb; }
+    .upload-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .upload-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+    .file-label { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 0.25rem; }
+    .file-label input[type=file] { display: none; }
+    .file-label span { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 0.9rem; font-size: 0.88rem; color: #374151; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-label span:hover { border-color: #2563eb; }
+    .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
+    .import-result { margin-top: 0.75rem; padding: 0.75rem 1rem; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0; }
+    .import-result ul { margin: 0.4rem 0 0; padding-left: 1.25rem; }
+    .import-result .error-item { color: #b91c1c; font-size: 0.85rem; }
+    .success { color: #15803d; font-weight: 600; margin: 0; }
+    .error-msg { color: #b91c1c; font-size: 0.88rem; margin-top: 0.5rem; }
   `],
 })
 export class StockPageComponent implements OnInit {
@@ -145,6 +197,13 @@ export class StockPageComponent implements OnInit {
   filtroTexto = '';
   filtroBodega = '';
   filtroAlerta = '';
+
+  // Cargue masivo
+  readonly archivoStock    = signal<File | null>(null);
+  readonly archivoNombre   = signal<string>('');
+  readonly importandoStock = signal(false);
+  readonly resultadoStock  = signal<{ procesados: number; errores: string[] } | null>(null);
+  readonly errorStock      = signal('');
 
   filasBajominimo(): number {
     return this.filas().filter((f) => f.bajominimo && !f.sinStock).length;
@@ -229,6 +288,48 @@ export class StockPageComponent implements OnInit {
       });
 
       this.filas.set(filas);
+    });
+  }
+
+  onArchivoChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.archivoStock.set(file);
+    this.archivoNombre.set(file?.name ?? '');
+    this.resultadoStock.set(null);
+    this.errorStock.set('');
+  }
+
+  descargarPlantilla() {
+    this.inventarioSvc.descargarPlantillaStock().subscribe({
+      next: (resp) => {
+        const blob = resp.body!;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'plantilla-stock.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+    });
+  }
+
+  importarStock() {
+    const file = this.archivoStock();
+    if (!file) return;
+    this.importandoStock.set(true);
+    this.resultadoStock.set(null);
+    this.errorStock.set('');
+    this.inventarioSvc.importarStockExcel(file).subscribe({
+      next: (data) => {
+        this.importandoStock.set(false);
+        this.resultadoStock.set(data);
+        this.cargar(); // refresca la tabla
+      },
+      error: (e: { error?: { message?: string } }) => {
+        this.importandoStock.set(false);
+        this.errorStock.set(e?.error?.message ?? 'Error al importar el archivo.');
+      },
     });
   }
 }

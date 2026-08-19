@@ -100,4 +100,20 @@ export class InventarioService {
       )
       .pipe(map((r) => r.data));
   }
+
+  descargarPlantillaStock() {
+    return this.http.get(`${this.base}/inventario/stock/plantilla-excel`, {
+      responseType: 'blob',
+      observe: 'response',
+    });
+  }
+
+  importarStockExcel(file: File) {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post<{ procesados: number; errores: string[] }>(
+      `${this.base}/inventario/stock/importar-excel`,
+      fd,
+    );
+  }
 }
