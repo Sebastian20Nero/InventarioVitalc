@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -29,6 +30,13 @@ export class ProductosController {
   @RequirePerm('PRODUCTO_CONSULTAR')
   obtenerPorId(@Param('id') id: string) {
     return this.productosService.obtenerPorId(id);
+  }
+
+  @Post('maestro')
+  @RequirePerm('PRODUCTO_CREAR')
+  @UseInterceptors(FileInterceptor('archivo', { limits: { fileSize: 20 * 1024 * 1024 } }))
+  importarMaestro(@UploadedFile() archivo: Express.Multer.File, @Req() request: AuthenticatedRequest) {
+    return this.productosService.importarMaestro(archivo?.buffer, request.user.userId);
   }
 
   @Post()

@@ -48,3 +48,12 @@ coverage/
 
 # Misc
 *.pem
+
+# Despachos de bodega (datos locales, no el código)
+despachos/datos/*.db
+despachos/datos/*.log
+despachos/datos/respaldos/
+
+# Bytecode de Python
+__pycache__/
+*.pyc

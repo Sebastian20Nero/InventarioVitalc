@@ -1,0 +1,15 @@
+Aquí se coloca el paquete original cuando llegue, sin renombrar los archivos:
+
+- parser_dropi.py
+- db.py
+- servicios.py
+- reportes.py
+- config.py
+- pruebas_parser.py
+
+El arranque usa parser_dropi.py de esta carpeta si el archivo existe y expone
+revisar_manifiesto. Si además define LECTOR_VERIFICADO = True, la pantalla
+deja de pedir la confirmación extra de totales.
+
+Hasta que esos archivos estén aquí, la aplicación usa el lector local y lo
+marca como no verificado contra el PDF de 238 páginas.

@@ -69,6 +69,14 @@ export const routes: Routes = [
         title: 'Empalme DsNube',
       },
       {
+        path: 'despachos',
+        loadComponent: () =>
+          import('./features/despachos/despachos-page.component').then(
+            (m) => m.DespachosPageComponent,
+          ),
+        title: 'Despachos DROPI',
+      },
+      {
         path: 'stock',
         loadComponent: () =>
           import('./features/stock/stock-page.component').then(

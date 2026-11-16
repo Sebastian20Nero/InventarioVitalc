@@ -34,6 +34,11 @@ import { AuthService } from '../core/services/auth.service';
             <a routerLink="/app/inventario/historial" routerLinkActive="active" *ngIf="perm('MOVIMIENTO_CONSULTAR')">Historial</a>
           </ng-container>
 
+          <ng-container *ngIf="perm('DESPACHO_CARGAR') || perm('DESPACHO_ALISTAR') || perm('DESPACHO_CONSULTAR') || perm('DESPACHO_DESPACHAR')">
+            <div class="nav-section">Despachos</div>
+            <a routerLink="/app/despachos" routerLinkActive="active">DROPI</a>
+          </ng-container>
+
           <ng-container *ngIf="perm('EMPALME_REVISAR')">
             <div class="nav-section">Empalme DsNube</div>
             <a routerLink="/app/empalme" routerLinkActive="active">Empalme</a>

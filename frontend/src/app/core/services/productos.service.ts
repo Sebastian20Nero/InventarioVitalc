@@ -50,6 +50,15 @@ export class ProductosService {
       .pipe(map((r) => r.data));
   }
 
+  importarMaestro(archivo: File) {
+    const datos = new FormData();
+    datos.append('archivo', archivo);
+    return this.http.post<{
+      data: { creados: number; actualizados: number; omitidos: number; errores: { fila: number; codigo: string; mensaje: string }[] };
+      message: string;
+    }>(`${this.base}/productos/maestro`, datos);
+  }
+
   actualizarEstado(id: string, activo: boolean) {
     return this.http
       .patch<{ data: Producto; message: string }>(`${this.base}/productos/${id}/estado`, { activo })

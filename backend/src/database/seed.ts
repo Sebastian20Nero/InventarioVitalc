@@ -47,6 +47,10 @@ const PERMISSIONS = [
   { key: 'EMPALME_MARCAR_LISTO', descripcion: 'Marcar movimiento como listo para DsNube' },
   { key: 'EMPALME_MARCAR_CARGADO', descripcion: 'Marcar movimiento como cargado/empalmado en DsNube' },
   { key: 'REPORTE_CONSULTAR', descripcion: 'Generar y consultar reportes de inventario' },
+  { key: 'DESPACHO_CARGAR', descripcion: 'Cargar un manifiesto DROPI, homologar y asignar el corte' },
+  { key: 'DESPACHO_ALISTAR', descripcion: 'Marcar las etapas del alistamiento de un corte asignado' },
+  { key: 'DESPACHO_CONSULTAR', descripcion: 'Ver el tablero de despacho y exportar el Excel' },
+  { key: 'DESPACHO_DESPACHAR', descripcion: 'Escanear guías, represar y cerrar el corte' },
 ];
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
@@ -58,6 +62,10 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'MOVIMIENTO_CONSULTAR',
     'STOCK_CONSULTAR',
     'REPORTE_CONSULTAR',
+    'DESPACHO_CARGAR',
+    'DESPACHO_ALISTAR',
+    'DESPACHO_CONSULTAR',
+    'DESPACHO_DESPACHAR',
   ],
   EMPALME_DSNUBE: [
     'PRODUCTO_CONSULTAR',
@@ -69,7 +77,13 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'EMPALME_MARCAR_CARGADO',
     'REPORTE_CONSULTAR',
   ],
-  CONSULTA: ['PRODUCTO_CONSULTAR', 'MOVIMIENTO_CONSULTAR', 'STOCK_CONSULTAR', 'REPORTE_CONSULTAR'],
+  CONSULTA: [
+    'PRODUCTO_CONSULTAR',
+    'MOVIMIENTO_CONSULTAR',
+    'STOCK_CONSULTAR',
+    'REPORTE_CONSULTAR',
+    'DESPACHO_CONSULTAR',
+  ],
 };
 
 const CATEGORIAS = [

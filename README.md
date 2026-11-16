@@ -34,10 +34,6 @@ Trae listo:
 - [Flujo de Git recomendado](#flujo-de-git-recomendado)
 - [Crecimiento natural](#crecimiento-natural)
 
-> Documentacion adicional:
->
-> - [Conexion a la base de datos](docs/CONEXION-BD.md) - guia + propuesta de mejoras
-
 ---
 
 ## Requisitos
@@ -187,10 +183,6 @@ http://127.0.0.1:4200 con `johanstian20@hotmail.com` / `rmmr`.
 ---
 
 ## Inicializar la base desde pgAdmin
-
-> Para una guia completa de **conexion** (backend, pgAdmin, clientes
-> externos como DBeaver/DataGrip/psql) y una propuesta priorizada de
-> mejoras al modelo de conexion, ver [`docs/CONEXION-BD.md`](docs/CONEXION-BD.md).
 
 ### 1. Abre pgAdmin
 

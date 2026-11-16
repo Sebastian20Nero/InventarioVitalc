@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Decimal } from 'decimal.js';
+import { PoolClient } from 'pg';
 import { DatabaseService } from '../database/database.service';
+import { FilaMaestro } from './maestro-excel';
 
 export interface ProductoCreateInput {
   codigoInterno: string;
@@ -35,6 +37,27 @@ export interface ProductoConRelaciones {
   creadoPor: string;
   createdAt: Date;
   updatedAt: Date;
+  codigoBarras: string | null;
+  sku: string | null;
+  estadoComercial: string | null;
+  presentacion: string | null;
+  contenido: string | null;
+  sabor: string | null;
+  registro: string | null;
+  laboratorio: string | null;
+  perfilProducto: string | null;
+  familia: string | null;
+  lista1: string | null;
+  referencia: string | null;
+  ultCosto: string | null;
+  costoIva: string | null;
+  precioMaquila: string | null;
+  precioContado: string | null;
+  precioCredito: string | null;
+  precioComunidad: string | null;
+  precioPrivado: string | null;
+  precioPublico: string | null;
+  observacion: string | null;
   categoria: { idCategoria: string; nombre: string; descripcion: string | null; activo: boolean };
   unidad: { idUnidad: string; nombre: string; abreviatura: string; activo: boolean };
   creador: { idUsuario: string; persona: { nombres: string; apellidos: string; correo: string } };
@@ -103,6 +126,95 @@ export class ProductosRepository {
     );
   }
 
+  enTransaccion<T>(fn: (client: PoolClient) => Promise<T>) {
+    return this.db.transaction(fn);
+  }
+
+  clasificacionMaestro() {
+    return Promise.all([
+      this.db.one<{ idCategoria: string }>(
+        `SELECT "idCategoria" FROM "CategoriaProducto" WHERE "nombre" = 'Insumos generales' AND "activo" = true`,
+      ),
+      this.db.one<{ idUnidad: string }>(
+        `SELECT "idUnidad" FROM "UnidadMedida" WHERE "abreviatura" = 'UND' AND "activo" = true`,
+      ),
+    ]);
+  }
+
+  async aplicarMaestro(
+    client: PoolClient,
+    fila: FilaMaestro,
+    categoriaId: string,
+    unidadId: string,
+    creadoPor: string,
+  ) {
+    const existe = await this.db.one<{ idProducto: string }>(
+      `SELECT "idProducto" FROM "Producto" WHERE "codigoInterno" = $1`,
+      [fila.codigo],
+      client,
+    );
+    const textos = fila.textos;
+    const precios = fila.precios;
+    const valores = [
+      fila.nombre,
+      textos.codigoBarras,
+      textos.sku,
+      textos.estadoComercial,
+      textos.presentacion,
+      textos.contenido,
+      textos.sabor,
+      textos.registro,
+      textos.laboratorio,
+      textos.perfilProducto,
+      textos.familia,
+      precios.lista1,
+      textos.referencia,
+      precios.ultCosto,
+      precios.costoIva,
+      precios.precioMaquila,
+      precios.precioContado,
+      precios.precioCredito,
+      precios.precioComunidad,
+      precios.precioPrivado,
+      precios.precioPublico,
+      textos.observacion,
+    ];
+    if (existe) {
+      await this.db.query(
+        `UPDATE "Producto" SET
+           "nombre" = $2,
+           "codigoBarras" = $3, "sku" = $4, "estadoComercial" = $5, "presentacion" = $6,
+           "contenido" = $7, "sabor" = $8, "registro" = $9, "laboratorio" = $10,
+           "perfilProducto" = $11, "familia" = $12, "lista1" = $13, "referencia" = $14,
+           "ultCosto" = $15, "costoIva" = $16, "precioMaquila" = $17, "precioContado" = $18,
+           "precioCredito" = $19, "precioComunidad" = $20, "precioPrivado" = $21,
+           "precioPublico" = $22, "observacion" = $23,
+           "activo" = COALESCE($24, "activo"),
+           "updatedAt" = CURRENT_TIMESTAMP
+         WHERE "idProducto" = $1`,
+        [existe.idProducto, ...valores, fila.activo],
+        client,
+      );
+      return 'actualizado' as const;
+    }
+    await this.db.query(
+      `INSERT INTO "Producto" (
+         "codigoInterno", "nombre", "categoriaId", "unidadId", "stockMinimo", "activo", "creadoPor",
+         "codigoBarras", "sku", "estadoComercial", "presentacion", "contenido", "sabor", "registro",
+         "laboratorio", "perfilProducto", "familia", "lista1", "referencia", "ultCosto", "costoIva",
+         "precioMaquila", "precioContado", "precioCredito", "precioComunidad", "precioPrivado",
+         "precioPublico", "observacion"
+       ) VALUES (
+         $1, $2, $3, $4, 0, COALESCE($5, true), $6,
+         $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+         $21, $22, $23, $24, $25, $26, $27
+       )`,
+      [fila.codigo, fila.nombre, categoriaId, unidadId, fila.activo, creadoPor, ...valores.slice(1)],
+      client,
+    );
+    return 'creado' as const;
+  }
+
   async crear(data: ProductoCreateInput): Promise<ProductoConRelaciones> {
     const inserted = await this.db.one<{ idProducto: string }>(
       `INSERT INTO "Producto"
@@ -165,6 +277,27 @@ export class ProductosRepository {
       creadoPor: row.creadoPor,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      codigoBarras: row.codigoBarras ?? null,
+      sku: row.sku ?? null,
+      estadoComercial: row.estadoComercial ?? null,
+      presentacion: row.presentacion ?? null,
+      contenido: row.contenido ?? null,
+      sabor: row.sabor ?? null,
+      registro: row.registro ?? null,
+      laboratorio: row.laboratorio ?? null,
+      perfilProducto: row.perfilProducto ?? null,
+      familia: row.familia ?? null,
+      lista1: row.lista1 ?? null,
+      referencia: row.referencia ?? null,
+      ultCosto: row.ultCosto ?? null,
+      costoIva: row.costoIva ?? null,
+      precioMaquila: row.precioMaquila ?? null,
+      precioContado: row.precioContado ?? null,
+      precioCredito: row.precioCredito ?? null,
+      precioComunidad: row.precioComunidad ?? null,
+      precioPrivado: row.precioPrivado ?? null,
+      precioPublico: row.precioPublico ?? null,
+      observacion: row.observacion ?? null,
       categoria: {
         idCategoria: row.cat_id,
         nombre: row.cat_nombre,

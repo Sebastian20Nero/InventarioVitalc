@@ -9,6 +9,7 @@ import { CatalogosModule } from './catalogos/catalogos.module';
 import { ProductosModule } from './productos/productos.module';
 import { InventarioModule } from './inventario/inventario.module';
 import { EmpalmeModule } from './empalme/empalme.module';
+import { DespachosModule } from './despachos/despachos.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { EmpalmeModule } from './empalme/empalme.module';
     ProductosModule,
     InventarioModule,
     EmpalmeModule,
+    DespachosModule,
   ],
   controllers: [HealthController],
   providers: [],

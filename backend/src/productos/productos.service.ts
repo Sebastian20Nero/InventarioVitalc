@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoEstadoDto } from './dto/update-producto-estado.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
+import { leerMaestro } from './maestro-excel';
 import { ProductosRepository } from './productos.repository';
 
 type ProductoConRelaciones = NonNullable<Awaited<ReturnType<ProductosRepository['buscarPorId']>>>;
@@ -40,6 +41,27 @@ export class ProductosService {
       unidadId: producto.unidadId.toString(),
       stockMinimo: producto.stockMinimo.toString(),
       activo: producto.activo,
+      codigoBarras: producto.codigoBarras,
+      sku: producto.sku,
+      estadoComercial: producto.estadoComercial,
+      presentacion: producto.presentacion,
+      contenido: producto.contenido,
+      sabor: producto.sabor,
+      registro: producto.registro,
+      laboratorio: producto.laboratorio,
+      perfilProducto: producto.perfilProducto,
+      familia: producto.familia,
+      lista1: producto.lista1,
+      referencia: producto.referencia,
+      ultCosto: producto.ultCosto,
+      costoIva: producto.costoIva,
+      precioMaquila: producto.precioMaquila,
+      precioContado: producto.precioContado,
+      precioCredito: producto.precioCredito,
+      precioComunidad: producto.precioComunidad,
+      precioPrivado: producto.precioPrivado,
+      precioPublico: producto.precioPublico,
+      observacion: producto.observacion,
       creadoPor: producto.creadoPor.toString(),
       createdAt: producto.createdAt,
       updatedAt: producto.updatedAt,
@@ -141,6 +163,49 @@ export class ProductosService {
     return {
       data: this.serializeProducto(updated),
       message: 'Producto actualizado correctamente',
+    };
+  }
+
+  async importarMaestro(buffer: Buffer | undefined, userId: string) {
+    if (!buffer?.length) {
+      throw new BadRequestException('Selecciona el Excel del maestro.');
+    }
+    let lectura;
+    try {
+      lectura = await leerMaestro(buffer);
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'No se pudo leer el Excel.');
+    }
+    if (!lectura.filas.length && lectura.errores.length) {
+      throw new BadRequestException(lectura.errores[0].mensaje);
+    }
+    const [categoria, unidad] = await this.productosRepository.clasificacionMaestro();
+    if (!categoria || !unidad) {
+      throw new BadRequestException('Falta la categoría Insumos generales o la unidad UND para clasificar el maestro.');
+    }
+    const resumen = await this.productosRepository.enTransaccion(async (client) => {
+      let creados = 0;
+      let actualizados = 0;
+      for (const fila of lectura.filas) {
+        const resultado = await this.productosRepository.aplicarMaestro(
+          client,
+          fila,
+          categoria.idCategoria,
+          unidad.idUnidad,
+          userId,
+        );
+        if (resultado === 'creado') creados += 1;
+        else actualizados += 1;
+      }
+      return { creados, actualizados };
+    });
+    return {
+      data: {
+        ...resumen,
+        omitidos: lectura.omitidos,
+        errores: lectura.errores.slice(0, 30),
+      },
+      message: `Maestro cargado: ${resumen.creados} nuevos y ${resumen.actualizados} actualizados.`,
     };
   }
 

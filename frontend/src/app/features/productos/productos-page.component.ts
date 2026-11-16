@@ -93,6 +93,19 @@ import { Categoria, Producto, Unidad } from '../../core/models/inventario.models
 
       <div class="card">
         <div class="card-header">
+          <h2>Cargar maestro desde Excel</h2>
+          <p class="ayuda">Usa la hoja Maestro_Estandar. La clave es Código. Si el código ya existe, se actualizan los campos del estándar.</p>
+        </div>
+        <div class="filter-row">
+          <input type="file" accept=".xlsx" (change)="elegirArchivo($event)" />
+          <button type="button" (click)="cargarExcel()" [disabled]="!archivoMaestro || cargandoMaestro">Cargar</button>
+        </div>
+        <p class="error" *ngIf="errorMaestro()">{{ errorMaestro() }}</p>
+        <p *ngIf="resultadoMaestro()">{{ resultadoMaestro() }}</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
           <h2>Productos</h2>
           <div class="filter-row">
             <input [(ngModel)]="filtro" name="filtro" placeholder="Buscar por nombre o código..." class="filter-input" />
@@ -111,21 +124,25 @@ import { Categoria, Producto, Unidad } from '../../core/models/inventario.models
           <thead>
             <tr>
               <th>Código</th>
+              <th>SKU</th>
               <th>Nombre</th>
-              <th>Categoría</th>
-              <th>Unidad</th>
-              <th>Stock mín.</th>
+              <th>Familia</th>
+              <th>Presentación</th>
+              <th>Laboratorio</th>
               <th>Estado</th>
+              <th>Activo</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let p of productosFiltrados()">
               <td><code>{{ p.codigoInterno }}</code></td>
+              <td>{{ p.sku }}</td>
               <td>{{ p.nombre }}</td>
-              <td>{{ p.categoria.nombre }}</td>
-              <td>{{ p.unidad.abreviatura }}</td>
-              <td>{{ p.stockMinimo }}</td>
+              <td>{{ p.familia }}</td>
+              <td>{{ p.presentacion }}</td>
+              <td>{{ p.laboratorio }}</td>
+              <td>{{ p.estadoComercial }}</td>
               <td><span [class]="p.activo ? 'badge-activo' : 'badge-inactivo'">{{ p.activo ? 'Activo' : 'Inactivo' }}</span></td>
               <td class="table-actions">
                 <button class="ghost" type="button" (click)="seleccionar(p)">Editar</button>
@@ -133,7 +150,7 @@ import { Categoria, Producto, Unidad } from '../../core/models/inventario.models
               </td>
             </tr>
             <tr *ngIf="productosFiltrados().length === 0">
-              <td colspan="7" class="empty">No se encontraron productos</td>
+              <td colspan="9" class="empty">No se encontraron productos</td>
             </tr>
           </tbody>
         </table>
@@ -179,6 +196,7 @@ import { Categoria, Producto, Unidad } from '../../core/models/inventario.models
     .filter-input { flex: 1; min-width: 200px; }
     code { background: var(--surface-2, #f4f4f5); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
     .empty { text-align: center; color: var(--muted, #6b7280); padding: 2rem !important; }
+    .ayuda { margin: 0; color: #4b5563; font-size: 0.9rem; }
   `],
 })
 export class ProductosPageComponent implements OnInit {
@@ -192,6 +210,10 @@ export class ProductosPageComponent implements OnInit {
   readonly editando = signal<Producto | null>(null);
   readonly stockProducto = signal<StockProductoBodega[]>([]);
   readonly error = signal('');
+  readonly errorMaestro = signal('');
+  readonly resultadoMaestro = signal('');
+  archivoMaestro: File | null = null;
+  cargandoMaestro = false;
 
   filtro = '';
   filtroCategoriaId = '';
@@ -216,7 +238,10 @@ export class ProductosPageComponent implements OnInit {
     const q = this.filtro.toLowerCase().trim();
     if (q) {
       lista = lista.filter(
-        (p) => p.nombre.toLowerCase().includes(q) || p.codigoInterno.toLowerCase().includes(q),
+        (p) =>
+          p.nombre.toLowerCase().includes(q) ||
+          p.codigoInterno.toLowerCase().includes(q) ||
+          (p.sku ?? '').toLowerCase().includes(q),
       );
     }
     if (this.filtroCategoriaId) {
@@ -291,6 +316,33 @@ export class ProductosPageComponent implements OnInit {
     this.editando.set(null);
     this.stockProducto.set([]);
     this.resetForm();
+  }
+
+  elegirArchivo(evento: Event) {
+    const entrada = evento.target as HTMLInputElement;
+    this.archivoMaestro = entrada.files?.[0] ?? null;
+    this.resultadoMaestro.set('');
+    this.errorMaestro.set('');
+  }
+
+  cargarExcel() {
+    if (!this.archivoMaestro) return;
+    this.cargandoMaestro = true;
+    this.errorMaestro.set('');
+    this.svc.importarMaestro(this.archivoMaestro).subscribe({
+      next: (respuesta) => {
+        const errores = respuesta.data.errores.map((error) => `${error.codigo}: ${error.mensaje}`).join(' ');
+        this.resultadoMaestro.set(
+          `${respuesta.message} Filas vacías omitidas: ${respuesta.data.omitidos}. ${errores}`.trim(),
+        );
+        this.cargandoMaestro = false;
+        this.cargar();
+      },
+      error: (e) => {
+        this.errorMaestro.set(e?.error?.message ?? 'No se pudo cargar el maestro.');
+        this.cargandoMaestro = false;
+      },
+    });
   }
 
   toggleEstado(p: Producto) {
